@@ -68,13 +68,18 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
         // Process token accounts
         const processedTokenAccounts = tokenAccounts.value.map(account => {
             const tokenData = account.account.data.parsed.info;
-            return {
-                mint: tokenData.mint,
-                amount: tokenData.tokenAmount.uiAmount,
-                decimals: tokenData.tokenAmount.decimals,
-                usdValue: tokenData.tokenAmount.uiAmount * 1 // TODO: Get actual token price
-            };
-        }).filter(token => token.amount > 0);
+            const amount = tokenData.tokenAmount.uiAmount || 0;
+            // Only include tokens with non-zero balance
+            if (amount > 0) {
+                return {
+                    mint: tokenData.mint,
+                    amount: amount,
+                    decimals: tokenData.tokenAmount.decimals,
+                    usdValue: amount * 1 // TODO: Get actual token price
+                };
+            }
+            return null;
+        }).filter(token => token !== null);
 
         let totalTokenValue = processedTokenAccounts.reduce((sum, token) => sum + token.usdValue, 0);
         
