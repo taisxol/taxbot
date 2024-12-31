@@ -143,13 +143,21 @@ function App() {
             <div className="wallet-summary">
               <div className="summary-card">
                 <h3>SOL Balance</h3>
-                <div className="amount">{walletData.balance} SOL</div>
-                <div className="usd-value">${walletData.balanceUSD}</div>
+                <div className="amount">{formatAmount(walletData.balance)} SOL</div>
+                <div className="usd-value">{formatCurrency(walletData.balanceUSD)}</div>
               </div>
               <div className="summary-card">
                 <h3>Token Holdings</h3>
-                <div className="amount">{walletData.tokenAccounts?.length || 0}</div>
-                <div className="usd-value">${walletData.tokenBalanceUSD || '0.00'}</div>
+                <div className="token-list">
+                  {walletData.tokenAccounts?.map((token, index) => (
+                    <div key={index} className="token-item">
+                      <span className="token-amount">{formatAmount(token.amount)}</span>
+                      <span className="token-mint">{token.mint}</span>
+                      <span className="token-value">{formatCurrency(token.usdValue)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="usd-value">Total: {formatCurrency(walletData.tokenBalanceUSD)}</div>
               </div>
             </div>
 
@@ -225,9 +233,9 @@ function App() {
                         
                         {tx.type === 'SWAP' && (
                           <div className="profit-loss" style={{
-                            color: tx.profit >= 0 ? '#4CAF50' : '#f44336'
+                            color: (tx.profit || 0) >= 0 ? '#4CAF50' : '#f44336'
                           }}>
-                            {tx.profit >= 0 ? 'Profit' : 'Loss'}: {formatCurrency(Math.abs(tx.profit))}
+                            {(tx.profit || 0) >= 0 ? 'Profit' : 'Loss'}: {formatCurrency(Math.abs(tx.profit || 0))}
                           </div>
                         )}
 

@@ -60,6 +60,24 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
 
         const walletAddress = new PublicKey(req.params.walletAddress);
         
+        // Get token accounts
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletAddress, {
+            programId: TOKEN_PROGRAM_ID
+        });
+
+        // Process token accounts
+        const processedTokenAccounts = tokenAccounts.value.map(account => {
+            const tokenData = account.account.data.parsed.info;
+            return {
+                mint: tokenData.mint,
+                amount: tokenData.tokenAmount.uiAmount,
+                decimals: tokenData.tokenAmount.decimals,
+                usdValue: tokenData.tokenAmount.uiAmount * 1 // TODO: Get actual token price
+            };
+        }).filter(token => token.amount > 0);
+
+        let totalTokenValue = processedTokenAccounts.reduce((sum, token) => sum + token.usdValue, 0);
+        
         // Get recent transactions
         const signatures = await connection.getSignaturesForAddress(walletAddress, {
             limit: 20
@@ -119,10 +137,21 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
                         
                         if (inTokens.length > 0 && outTokens.length > 0) {
                             type = 'SWAP';
-                            // Simple capital gains calculation
-                            const gainLoss = inTokens.reduce((sum, t) => sum + t.usdValue, 0) - 
-                                           outTokens.reduce((sum, t) => sum + t.usdValue, 0);
-                            capitalGains += gainLoss;
+                            // Calculate profit/loss
+                            const inValue = inTokens.reduce((sum, t) => sum + (t.usdValue || 0), 0);
+                            const outValue = outTokens.reduce((sum, t) => sum + (t.usdValue || 0), 0);
+                            const profit = inValue - outValue;
+                            capitalGains += profit;
+                            return {
+                                signature: sig.signature,
+                                timestamp: sig.blockTime,
+                                type,
+                                inTokens,
+                                outTokens,
+                                fee,
+                                profit,
+                                status: 'confirmed'
+                            };
                         }
                     }
                     
@@ -148,22 +177,21 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
         // Get SOL balance
         const balance = await connection.getBalance(walletAddress);
         const balanceInSol = balance / 1e9;
-        
-        // Calculate tax liability
-        const incomeTax = totalIncome * 0.37; // 37% tax rate
-        const capitalGainsTax = capitalGains * 0.20; // 20% tax rate
-        const taxLiability = incomeTax + capitalGainsTax;
+        const solPrice = 1; // TODO: Get actual SOL price
+        const balanceUSD = balanceInSol * solPrice;
 
         res.json({
             walletAddress: req.params.walletAddress,
             balance: balanceInSol,
-            balanceUSD: balanceInSol * 1, // TODO: Get actual SOL price
+            balanceUSD: balanceUSD,
+            tokenAccounts: processedTokenAccounts,
+            tokenBalanceUSD: totalTokenValue,
             transactions: validTransactions,
             taxSummary: {
                 totalIncome,
                 capitalGains,
                 totalFees,
-                taxLiability
+                taxLiability: totalIncome * 0.37 + capitalGains * 0.20
             }
         });
         
