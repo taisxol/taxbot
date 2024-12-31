@@ -5,7 +5,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0 auto;
+  overflow-x: hidden;
   color: #61dafb;
+}
+
+.App-header {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -175,17 +189,6 @@
   color: white;
   font-size: 1.2em;
   margin: 10px 0;
-}
-
-.App-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 20px;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 .App-logo {
@@ -395,31 +398,80 @@ h1 {
     padding: 10px;
   }
 
+  .App-header {
+    padding: 0 10px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .app-logo {
+    width: 80px;
+    height: auto;
+  }
+
   .input-section {
-    padding: 0 15px;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .state-selector {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 10px;
   }
 
   .wallet-input {
     width: 100%;
+    max-width: 100%;
     flex-direction: column;
+    gap: 10px;
+  }
+
+  .wallet-input input {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .wallet-input button {
     width: 100%;
+    margin: 0;
+  }
+
+  .results-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
   }
 
   .tax-summary {
+    width: 100%;
+    max-width: 100%;
     grid-template-columns: 1fr;
     gap: 10px;
+    padding: 0;
   }
 
   .summary-card,
   .tax-card {
+    width: 100%;
+    max-width: 100%;
     padding: 15px;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .contract-address {
+    width: 100%;
+    max-width: 100%;
     padding: 15px;
     margin: 15px 0;
+    box-sizing: border-box;
+  }
+
+  .beta-notice {
+    padding: 0 10px;
   }
 }
