@@ -10,7 +10,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedState, setSelectedState] = useState('CA');
-  const [isTokenHoldingsExpanded, setIsTokenHoldingsExpanded] = useState(false);
+  const [isTokenListCollapsed, setIsTokenListCollapsed] = useState(false);
 
   const calculateTaxes = async () => {
     if (!walletAddress.trim()) {
@@ -77,19 +77,25 @@ function App() {
     }
   };
 
-  const formatCurrency = (value) => {
-    return parseFloat(value).toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+  const formatAmount = (amount) => {
+    if (!amount && amount !== 0) return '0.0000';
+    const num = parseFloat(amount);
+    if (num >= 1000) {
+      return num.toLocaleString('en-US', {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4
+      });
+    }
+    // For numbers less than 1000, don't use thousands separator
+    return num.toFixed(4);
   };
 
-  const formatAmount = (value, decimals = 4) => {
-    return parseFloat(value).toLocaleString('en-US', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
+  const formatCurrency = (amount) => {
+    if (!amount && amount !== 0) return '$0.00';
+    const num = parseFloat(amount);
+    return '$' + num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
   };
 
@@ -185,17 +191,30 @@ function App() {
                 <div className="usd-value">{formatCurrency(walletData.balanceUSD)}</div>
               </div>
               <div className="summary-card">
-                <h3>Token Holdings</h3>
-                <div className="token-list">
-                  {walletData.tokenAccounts?.map((token, index) => (
-                    <div key={index} className="token-item">
-                      <span className="token-amount">{formatAmount(token.amount)}</span>
-                      <span className="token-mint">{token.mint}</span>
-                      <span className="token-value">{formatCurrency(token.usdValue)}</span>
-                    </div>
-                  ))}
+                <h3>
+                  Token Holdings
+                  <button 
+                    className="collapse-button"
+                    onClick={() => setIsTokenListCollapsed(!isTokenListCollapsed)}
+                  >
+                    {isTokenListCollapsed ? '▼' : '▲'}
+                  </button>
+                </h3>
+                <div className={`token-list-container ${isTokenListCollapsed ? 'collapsed' : 'expanded'}`}>
+                  <div className="token-list">
+                    {walletData.tokenAccounts?.map((token, index) => (
+                      <div key={index} className="token-item">
+                        <span className="token-amount">{formatAmount(token.amount)}</span>
+                        <span className="token-mint">{token.mint}</span>
+                        <span className="token-value">{formatCurrency(token.usdValue)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="usd-value">Total: {formatCurrency(walletData.tokenBalanceUSD)}</div>
+                <div className="summary-total">
+                  <span className="label">Total:</span>
+                  <span className="value">{formatCurrency(walletData.tokenBalanceUSD)}</span>
+                </div>
               </div>
             </div>
 
