@@ -114,7 +114,7 @@ function App() {
 
         <SocialLinks />
 
-        <div className="input-container">
+        <div className="input-section">
           <input
             type="text"
             value={walletAddress}
@@ -132,31 +132,15 @@ function App() {
         {walletData && (
           <div className="results-container">
             <div className="wallet-summary">
-              <h2>Wallet Summary</h2>
-              <div className="summary-grid">
-                <div className="summary-item">
-                  <h3>SOL Balance</h3>
-                  <p>{formatAmount(walletData.balance || 0)} SOL</p>
-                  <p className="usd-value">{formatCurrency(walletData.balanceUSD || 0)}</p>
-                </div>
-
-                <div className="token-holdings">
-                  <div className="section-header" onClick={() => setIsTokenHoldingsExpanded(!isTokenHoldingsExpanded)}>
-                    <h2>Token Holdings</h2>
-                    <span className={`expand-icon ${isTokenHoldingsExpanded ? 'expanded' : ''}`}>▼</span>
-                  </div>
-                  {isTokenHoldingsExpanded && (
-                    <div className="holdings-grid">
-                      {walletData.tokenAccounts && walletData.tokenAccounts.map((token, index) => (
-                        <div key={index} className="holding-item">
-                          <h3>{token.symbol}</h3>
-                          <p className="token-name">{token.name}</p>
-                          <p className="token-amount">{token.uiAmount.toLocaleString()}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="summary-card">
+                <h3>SOL Balance</h3>
+                <div className="amount">{walletData.balance} SOL</div>
+                <div className="usd-value">${walletData.balanceUSD}</div>
+              </div>
+              <div className="summary-card">
+                <h3>Token Holdings</h3>
+                <div className="amount">{walletData.tokenAccounts.length}</div>
+                <div className="usd-value">${walletData.tokenBalanceUSD}</div>
               </div>
             </div>
 
