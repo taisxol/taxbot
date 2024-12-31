@@ -4,39 +4,40 @@ const path = require('path');
 const { Connection, PublicKey, clusterApiUrl } = require('@solana/web3.js');
 const { TOKEN_PROGRAM_ID } = require('@solana/spl-token');
 const axios = require('axios');
-const { Jupiter } = require('@jup-ag/api');
-require('dotenv').config();
+const CoinGecko = require('coingecko-api');
 
 const app = express();
-const port = process.env.PORT || 3001;
+const PORT = 5000;
 
-// Configure CORS for specific origins
-app.use(cors({
-    origin: ['https://taxbot.onrender.com', 'http://localhost:3000'],
-    methods: ['GET', 'POST'],
-    credentials: true
-}));
+// CORS configuration - allow all origins in development
+app.use(cors());
 
 app.use(express.json());
 
-// Initialize Solana connection with better error handling
-let connection;
-try {
-    connection = new Connection(
-        process.env.SOLANA_RPC_URL || clusterApiUrl('mainnet-beta'),
-        'confirmed'
-    );
-    console.log('Solana connection initialized');
-} catch (error) {
-    console.error('Failed to initialize Solana connection:', error);
-}
+// Initialize connection with higher commitment and better timeout
+const connection = new Connection(
+    'https://api.mainnet-beta.solana.com',
+    {
+        commitment: 'confirmed',
+        confirmTransactionInitialTimeout: 60000,
+        wsEndpoint: 'wss://api.mainnet-beta.solana.com/'
+    }
+);
+console.log('Solana connection initialized');
 
-// Initialize Jupiter
-const jupiter = new Jupiter({ connection });
+// Initialize CoinGecko
+const CoinGeckoClient = new CoinGecko();
 
 // Cache token prices for 5 minutes
 const tokenPriceCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Token address to CoinGecko ID mapping
+const tokenMapping = {
+    'So11111111111111111111111111111111111111112': 'solana', // Native SOL
+    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': 'usd-coin', // USDC
+    // Add more mappings as needed
+};
 
 async function getTokenPrice(mint) {
     const now = Date.now();
@@ -46,21 +47,19 @@ async function getTokenPrice(mint) {
     }
 
     try {
-        // Use USDC as quote token
-        const quoteToken = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // USDC mint
-        const price = await jupiter.price({
-            inputMint: new PublicKey(mint),
-            outputMint: new PublicKey(quoteToken),
-            amount: 1_000_000, // 1 USDC = 1_000_000 (6 decimals)
-            slippageBps: 50
-        });
+        const coingeckoId = tokenMapping[mint];
+        if (!coingeckoId) {
+            throw new Error(`No CoinGecko ID found for token ${mint}`);
+        }
 
-        const tokenPrice = price ? parseFloat(price) : 0;
+        const response = await CoinGeckoClient.coins.fetchMarketData(coingeckoId);
+        const price = response.data.market_data.current_price.usd;
+
         tokenPriceCache.set(mint, {
-            price: tokenPrice,
+            price: price,
             timestamp: now
         });
-        return tokenPrice;
+        return price;
     } catch (error) {
         console.error(`Error fetching price for token ${mint}:`, error);
         return 0;
@@ -223,7 +222,7 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
         // Get SOL balance
         const balance = await connection.getBalance(walletAddress);
         const balanceInSol = balance / 1e9;
-        const solPrice = 1; // TODO: Get actual SOL price
+        const solPrice = await getTokenPrice('So11111111111111111111111111111111111111112'); // Native SOL mint
         const balanceUSD = balanceInSol * solPrice;
 
         res.json({
@@ -266,8 +265,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-    console.log(`Using RPC endpoint: ${process.env.SOLANA_RPC_URL || 'default mainnet-beta'}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });

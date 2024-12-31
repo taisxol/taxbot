@@ -7,74 +7,82 @@ import { stateTaxRates } from './data/stateTaxRates';
 function App() {
   const [walletAddress, setWalletAddress] = useState('');
   const [walletData, setWalletData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [selectedState, setSelectedState] = useState('CA');
-  const [isTokenListCollapsed, setIsTokenListCollapsed] = useState(false);
+  const [error, setError] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [selectedState, setSelectedState] = useState('California');
 
-  const calculateTaxes = async () => {
-    if (!walletAddress.trim()) {
+  const states = Object.keys(stateTaxRates);
+
+  const fetchWalletData = async (address) => {
+    try {
+      if (!address || address.trim().length === 0) {
+        throw new Error('Please enter a wallet address');
+      }
+
+      setError(null);
+      setProgress({ status: 'processing', message: 'Starting analysis...' });
+      setWalletData(null);
+
+      console.log('Fetching data for wallet:', address);
+      setProgress({ status: 'processing', message: 'Validating wallet address...' });
+      
+      const response = await fetch(`/api/transactions/${address}`);
+      const result = await response.json();
+      console.log('Server response:', JSON.stringify(result, null, 2));
+      
+      // Handle error responses
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Server error');
+      }
+
+      // Create processed data from response
+      const processedData = {
+        walletAddress: result.walletAddress || address,
+        solBalance: result.balance || 0,
+        yearSummary: {
+          year: new Date().getFullYear(),
+          trades: Array.isArray(result.transactions) ? result.transactions.length : 0,
+          totalValue: typeof result.totalValue === 'number' ? result.totalValue : 0,
+          transactions: Array.isArray(result.transactions) ? result.transactions : []
+        }
+      };
+      
+      console.log('Processed wallet data:', JSON.stringify(processedData, null, 2));
+      setWalletData(processedData);
+      setProgress({ 
+        status: 'complete', 
+        message: (processedData.yearSummary.trades > 0) ? 'Analysis complete!' : 'No transactions found for this wallet.' 
+      });
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+      setError(error.message || 'An unexpected error occurred');
+      setProgress({ status: 'error', message: `Analysis failed: ${error.message}` });
+      setWalletData(null);
+    }
+  };
+
+  const handleCalculate = async () => {
+    if (!walletAddress || walletAddress.trim().length === 0) {
       setError('Please enter a wallet address');
+      setProgress({ status: 'error', message: 'Please enter a wallet address' });
       return;
     }
+    await fetchWalletData(walletAddress.trim());
+  };
 
-    setLoading(true);
-    setError(null);
-    setWalletData(null);
-
-    try {
-      console.log('Fetching data for wallet:', walletAddress);
-      
-      // Use the correct production URL
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://taxbot.onrender.com'  // Production URL
-        : window.location.origin;
-      
-      console.log('Using base URL:', baseUrl);
-      
-      // First check if server is healthy
-      console.log('Checking server health...');
-      const healthCheck = await fetch(`${baseUrl}/health`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!healthCheck.ok) {
-        console.error('Health check failed:', await healthCheck.text());
-        throw new Error('Server is not responding');
-      }
-      
-      console.log('Server is healthy, fetching wallet data...');
-      // Get transactions and tax data
-      const response = await fetch(`${baseUrl}/api/transactions/${walletAddress}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        console.error('API request failed:', await response.text());
-        throw new Error('Failed to fetch wallet data');
-      }
-
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      console.log('Received data:', data);
-      setWalletData(data);
-      
-    } catch (err) {
-      console.error('Error details:', err);
-      setError(err.message || 'Failed to fetch data. Please try again later.');
-    } finally {
-      setLoading(false);
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setWalletAddress(value);
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+      setProgress(null);
     }
+  };
+
+  const formatNumber = (value) => {
+    if (typeof value !== 'number') return '0';
+    return value.toFixed(4);
   };
 
   const formatAmount = (amount) => {
@@ -132,208 +140,92 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} alt="tAIx Logo" className="header-logo" />
+        <img src={logo} className="App-logo" alt="logo" />
         <h1>Solana Tax Calculator</h1>
-        <p className="powered-by">powered by $tAIx</p>
+        <p className="powered-by">powered by $tAlx</p>
 
-        <div className="input-container">
+        <div className="input-section">
           <div className="state-selector">
-            <label htmlFor="state">Select Your State:</label>
-            <select 
-              id="state" 
-              value={selectedState} 
-              onChange={(e) => setSelectedState(e.target.value)}
-            >
-              {Object.entries(stateTaxRates).map(([code, data]) => (
-                <option key={code} value={code}>
-                  {data.name}
-                </option>
+            <label>Select Your State:</label>
+            <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)}>
+              {states.map(state => (
+                <option key={state} value={state}>{state}</option>
               ))}
             </select>
           </div>
-          
-          <input
-            type="text"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            placeholder="Enter Solana wallet address"
-            className="wallet-input"
-          />
-          <button 
-            onClick={calculateTaxes} 
-            disabled={loading || !walletAddress} 
-            className="calculate-button"
-          >
-            {loading ? 'Calculating...' : 'Calculate'}
-          </button>
+
+          <div className="wallet-input">
+            <input
+              type="text"
+              value={walletAddress}
+              onChange={handleInputChange}
+              placeholder="Enter your Solana wallet address to calculate taxes"
+              className={error ? 'error' : ''}
+            />
+            <button onClick={handleCalculate} disabled={!walletAddress || walletAddress.trim().length === 0}>
+              Calculate
+            </button>
+          </div>
         </div>
 
-        <div className="description">
-          <p>Enter your Solana wallet address to calculate taxes</p>
-          <p className="beta-notice">Open-source currently in beta, inviting other developers to solve this issue with us</p>
-        </div>
+        <p className="beta-notice">
+          Open-source currently in beta, inviting other developers to solve this issue with us
+        </p>
 
-        <div className="contract-address">
-          <h2>CONTRACT ADDRESS</h2>
-          <p>HT9krGhGBso93GwqQg6qWqKwgKvxwmP3Nwd8ACfECydr</p>
-        </div>
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
 
-        <SocialLinks />
-
-        {error && <div className="error-message">{error}</div>}
+        {progress && (
+          <div className={`progress-message ${progress.status}`}>
+            {progress.message}
+          </div>
+        )}
 
         {walletData && (
-          <div className="results-container">
-            <div className="wallet-summary">
-              <div className="summary-card">
-                <h3>SOL Balance</h3>
-                <div className="amount">{formatAmount(walletData.balance)} SOL</div>
-                <div className="usd-value">{formatCurrency(walletData.balanceUSD)}</div>
-              </div>
-              <div className="summary-card">
-                <h3>
-                  Token Holdings
-                  <button 
-                    className="collapse-button"
-                    onClick={() => setIsTokenListCollapsed(!isTokenListCollapsed)}
-                  >
-                    {isTokenListCollapsed ? '▼' : '▲'}
-                  </button>
-                </h3>
-                <div className={`token-list-container ${isTokenListCollapsed ? 'collapsed' : 'expanded'}`}>
-                  <div className="token-list">
-                    {walletData.tokenAccounts?.map((token, index) => (
-                      <div key={index} className="token-item">
-                        <span className="token-amount">{formatAmount(token.amount)}</span>
-                        <span className="token-mint">{token.mint}</span>
-                        <span className="token-value">{formatCurrency(token.usdValue)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="summary-total">
-                  <span className="label">Total:</span>
-                  <span className="value">{formatCurrency(walletData.tokenBalanceUSD)}</span>
-                </div>
-              </div>
+          <div className="results-section">
+            <div className="wallet-info">
+              <h2>Wallet Summary</h2>
+              <p>Address: {walletData.walletAddress}</p>
+              <p>SOL Balance: {formatNumber(walletData.solBalance)} SOL</p>
             </div>
 
-            <div className="tax-summary">
-              <div className="tax-card">
-                <h3>Federal Income Tax</h3>
-                <div className="amount">${(walletData.taxSummary?.totalIncome * 0.37).toFixed(2)}</div>
-                <small>37% Tax Rate</small>
-              </div>
-              <div className="tax-card">
-                <h3>Federal Capital Gains</h3>
-                <div className="amount">${(walletData.taxSummary?.capitalGains * 0.20).toFixed(2)}</div>
-                <small>20% Tax Rate</small>
-              </div>
-              <div className="tax-card">
-                <h3>State Tax ({stateTaxRates[selectedState].name})</h3>
-                <div className="amount">
-                  ${((walletData.taxSummary?.totalIncome + walletData.taxSummary?.capitalGains) * 
-                     stateTaxRates[selectedState].incomeTax).toFixed(2)}
-                </div>
-                <small>{(stateTaxRates[selectedState].incomeTax * 100).toFixed(2)}% Tax Rate</small>
-              </div>
-              <div className="tax-card">
-                <h3>Transaction Fees</h3>
-                <div className="amount">${walletData.taxSummary?.totalFees?.toFixed(2) || '0.00'}</div>
-                <small>Deductible</small>
-              </div>
-              <div className="tax-card highlight">
-                <h3>Total Tax Liability</h3>
-                <div className="amount">
-                  ${(
-                    walletData.taxSummary?.totalIncome * 0.37 + 
-                    walletData.taxSummary?.capitalGains * 0.20 +
-                    (walletData.taxSummary?.totalIncome + walletData.taxSummary?.capitalGains) * 
-                    stateTaxRates[selectedState].incomeTax
-                  ).toFixed(2)}
-                </div>
-                <small>Federal + State Tax</small>
-              </div>
+            <div className="year-summary">
+              <h2>{walletData.yearSummary.year} Summary</h2>
+              <p>Total Trades: {walletData.yearSummary.trades}</p>
+              <p>Total Value: ${formatNumber(walletData.yearSummary.totalValue)}</p>
             </div>
 
-            {walletData.transactions?.length > 0 && (
+            {walletData.yearSummary.transactions.length > 0 && (
               <div className="transactions">
-                <h2>Transaction History</h2>
-                <div className="transaction-list">
-                  {walletData.transactions.map((tx, index) => (
-                    <div key={tx.signature} className="transaction-item">
-                      <div className="transaction-header">
-                        <span 
-                          className="transaction-type"
-                          style={{ backgroundColor: getTransactionTypeColor(tx.type) }}
-                        >
-                          {tx.type}
-                        </span>
-                        <span className="transaction-date">
-                          {new Date(tx.timestamp * 1000).toLocaleString()}
-                        </span>
-                      </div>
-                      
-                      <div className="transaction-details">
-                        {tx.inTokens?.length > 0 && (
-                          <div className="token-flow in">
-                            <h4>Received</h4>
-                            {tx.inTokens.map((token, i) => (
-                              <div key={i} className="token-amount">
-                                <span>{formatAmount(token.amount)} {token.mint}</span>
-                                <span className="usd-value">
-                                  {formatCurrency(token.usdValue)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {tx.outTokens?.length > 0 && (
-                          <div className="token-flow out">
-                            <h4>Sent</h4>
-                            {tx.outTokens.map((token, i) => (
-                              <div key={i} className="token-amount">
-                                <span>{formatAmount(token.amount)} {token.mint}</span>
-                                <span className="usd-value">
-                                  {formatCurrency(token.usdValue)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {tx.type === 'SWAP' && (
-                          <div className="profit-loss" style={{
-                            color: (tx.profit || 0) >= 0 ? '#4CAF50' : '#f44336'
-                          }}>
-                            {(tx.profit || 0) >= 0 ? 'Profit' : 'Loss'}: {formatCurrency(Math.abs(tx.profit || 0))}
-                          </div>
-                        )}
-
-                        {tx.fees > 0 && (
-                          <div className="transaction-fees">
-                            Fee: {formatAmount(tx.fees)} SOL
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="transaction-link">
-                        <a
-                          href={`https://solscan.io/tx/${tx.signature}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View on Solscan
-                        </a>
-                      </div>
-                    </div>
+                <h2>Recent Transactions</h2>
+                <ul>
+                  {walletData.yearSummary.transactions.map((tx, index) => (
+                    <li key={tx.signature || index}>
+                      <span className="tx-date">
+                        {tx.timestamp ? new Date(tx.timestamp * 1000).toLocaleDateString() : 'Unknown date'}
+                      </span>
+                      <span className="tx-value">
+                        ${formatNumber(tx.value)}
+                      </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             )}
           </div>
         )}
+
+        <div className="contract-section">
+          <h3>CONTRACT ADDRESS</h3>
+          <div className="contract-address">
+            HT9krGhGBso93GwqQqGqMqKwqKvxvxwmP3NvdBACfECydr
+          </div>
+        </div>
+
+        <SocialLinks />
       </header>
     </div>
   );
