@@ -22,8 +22,11 @@ function App() {
     try {
       console.log('Fetching data for wallet:', walletAddress);
       
-      // In production, use relative URLs
-      const baseUrl = window.location.origin;
+      // Use the correct API URL based on environment
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://api.taixsol.com'  
+        : window.location.origin;
+      
       console.log('Using base URL:', baseUrl);
       
       // First check if server is healthy
