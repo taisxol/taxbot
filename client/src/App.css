@@ -17,40 +17,54 @@
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding-bottom: 20px;
+  text-align: center;
 }
 
 .App-logo {
   height: 120px;
   pointer-events: none;
-  margin-bottom: 20px;
+  margin: 0 auto 10px;
+  display: block;
 }
 
 .input-section {
   width: 100%;
   max-width: 800px;
   margin: 20px auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  text-align: center;
 }
 
 .state-selector {
   width: 100%;
   max-width: 400px;
-  margin: 0 auto;
+  margin: 0 auto 20px;
+  text-align: center;
+}
+
+.state-selector label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.state-selector select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #666;
+  background: #333;
+  color: white;
+  font-size: 16px;
   text-align: center;
 }
 
 .wallet-input {
   width: 100%;
   max-width: 600px;
+  margin: 0 auto;
   display: flex;
   gap: 10px;
-  margin: 0 auto;
+  justify-content: center;
 }
 
 .wallet-input input {
@@ -61,6 +75,7 @@
   background: #333;
   color: white;
   font-size: 16px;
+  text-align: center;
 }
 
 .wallet-input button {
@@ -71,15 +86,14 @@
   color: black;
   cursor: pointer;
   font-size: 16px;
+  white-space: nowrap;
 }
 
 .results-container {
   width: 100%;
   max-width: 800px;
   margin: 20px auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
 }
 
 .tax-summary {
@@ -106,6 +120,7 @@
   margin: 20px auto;
   border-radius: 10px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .error-message {
@@ -501,12 +516,14 @@ h1 {
 @media (max-width: 600px) {
   .App {
     padding: 10px;
+    overflow-x: hidden;
   }
 
   .App-header {
-    padding: 0 10px;
+    padding: 0;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
   }
 
   .app-logo {
@@ -515,15 +532,18 @@ h1 {
   }
 
   .input-section {
+    padding: 0;
     width: 100%;
     max-width: 100%;
-    padding: 0;
+    box-sizing: border-box;
   }
 
   .state-selector {
     width: 100%;
     max-width: 100%;
-    margin-bottom: 10px;
+    margin: 0 0 15px 0;
+    padding: 0 10px;
+    box-sizing: border-box;
   }
 
   .wallet-input {
@@ -531,11 +551,12 @@ h1 {
     max-width: 100%;
     flex-direction: column;
     gap: 10px;
+    padding: 0 10px;
+    box-sizing: border-box;
   }
 
   .wallet-input input {
     width: 100%;
-    max-width: 100%;
     margin: 0;
     box-sizing: border-box;
   }
@@ -548,12 +569,82 @@ h1 {
   .results-container {
     width: 100%;
     max-width: 100%;
-    padding: 0;
+    padding: 0 10px;
+    box-sizing: border-box;
   }
 
   .tax-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .summary-card,
+  .tax-card {
+    padding: 15px;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .contract-address {
+    padding: 15px;
+    margin: 15px 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .beta-notice,
+  .powered-by {
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 600px) {
+  .App {
+    padding: 10px;
+  }
+
+  .App-header {
+    padding: 0 10px;
+  }
+
+  .app-logo {
+    width: 80px;
+    height: auto;
+  }
+
+  .input-section {
+    padding: 0;
+  }
+
+  .state-selector {
     width: 100%;
     max-width: 100%;
+    margin-bottom: 15px;
+  }
+
+  .wallet-input {
+    width: 100%;
+    max-width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wallet-input input {
+    width: 100%;
+    margin: 0;
+  }
+
+  .wallet-input button {
+    width: 100%;
+    margin: 0;
+  }
+
+  .tax-summary {
     grid-template-columns: 1fr;
     gap: 10px;
     padding: 0;
@@ -561,22 +652,12 @@ h1 {
 
   .summary-card,
   .tax-card {
-    width: 100%;
-    max-width: 100%;
     padding: 15px;
     margin: 0;
-    box-sizing: border-box;
   }
 
   .contract-address {
-    width: 100%;
-    max-width: 100%;
     padding: 15px;
     margin: 15px 0;
-    box-sizing: border-box;
-  }
-
-  .beta-notice {
-    padding: 0 10px;
   }
 }
