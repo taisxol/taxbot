@@ -9,8 +9,12 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Configure CORS - allow all origins in production for now
-app.use(cors());
+// Configure CORS for specific origins
+app.use(cors({
+    origin: ['https://taxbot.onrender.com', 'http://localhost:3000'],
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 
 app.use(express.json());
 

@@ -22,9 +22,9 @@ function App() {
     try {
       console.log('Fetching data for wallet:', walletAddress);
       
-      // Use the correct API URL based on environment
+      // Use the correct production URL
       const baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://api.taixsol.com'  
+        ? 'https://taxbot.onrender.com'  // Production URL
         : window.location.origin;
       
       console.log('Using base URL:', baseUrl);
