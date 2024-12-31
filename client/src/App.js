@@ -21,19 +21,38 @@ function App() {
     try {
       console.log('Fetching data for wallet:', walletAddress);
       
-      // Get the base URL based on environment
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? '' // Empty string will make it use relative URL in production
-        : 'http://localhost:3001';
+      // In production, use relative URLs
+      const baseUrl = window.location.origin;
+      console.log('Using base URL:', baseUrl);
       
       // First check if server is healthy
-      const healthCheck = await fetch(`${baseUrl}/health`);
+      console.log('Checking server health...');
+      const healthCheck = await fetch(`${baseUrl}/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
       if (!healthCheck.ok) {
+        console.error('Health check failed:', await healthCheck.text());
         throw new Error('Server is not responding');
       }
       
+      console.log('Server is healthy, fetching wallet data...');
       // Get transactions and tax data
-      const response = await fetch(`${baseUrl}/api/transactions/${walletAddress}`);
+      const response = await fetch(`${baseUrl}/api/transactions/${walletAddress}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.error('API request failed:', await response.text());
+        throw new Error('Failed to fetch wallet data');
+      }
+
       const data = await response.json();
       
       if (data.error) {
@@ -45,7 +64,7 @@ function App() {
       
     } catch (err) {
       console.error('Error details:', err);
-      setError(err.message || 'Failed to fetch data');
+      setError(err.message || 'Failed to fetch data. Please try again later.');
     } finally {
       setLoading(false);
     }

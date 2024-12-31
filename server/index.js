@@ -16,8 +16,16 @@ const DEX_PROGRAMS = {
     JUPITER: 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB'
 };
 
-// Middleware
-app.use(cors());
+// Configure CORS for all environments
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://taxbot.onrender.com'
+    : 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Serve static files from the React app in production
@@ -457,7 +465,22 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
+
+// Handle 404s
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
     console.log(`Using RPC endpoint: ${process.env.SOLANA_RPC_URL}`);
 });
