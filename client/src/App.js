@@ -161,28 +161,25 @@ function App() {
             </div>
 
             <div className="tax-summary">
-              <h2>Tax Summary</h2>
-              <div className="tax-grid">
-                <div className="tax-card">
-                  <h3>Total Income</h3>
-                  <p>{formatCurrency(walletData.taxSummary?.totalIncome || 0)}</p>
-                  <small>37% Tax Rate</small>
-                </div>
-                <div className="tax-card">
-                  <h3>Capital Gains</h3>
-                  <p>{formatCurrency(walletData.taxSummary?.capitalGains || 0)}</p>
-                  <small>20% Tax Rate</small>
-                </div>
-                <div className="tax-card">
-                  <h3>Total Fees</h3>
-                  <p>{formatCurrency(walletData.taxSummary?.totalFees || 0)}</p>
-                  <small>Deductible</small>
-                </div>
-                <div className="tax-card highlight">
-                  <h3>Tax Liability</h3>
-                  <p>{formatCurrency(walletData.taxSummary?.taxLiability || 0)}</p>
-                  <small>Estimated Total Tax</small>
-                </div>
+              <div className="tax-card">
+                <h3>Income Tax</h3>
+                <div className="amount">${walletData.taxSummary?.totalIncome.toFixed(2)}</div>
+                <small>37% Tax Rate</small>
+              </div>
+              <div className="tax-card">
+                <h3>Capital Gains</h3>
+                <div className="amount">${walletData.taxSummary?.capitalGains.toFixed(2)}</div>
+                <small>20% Tax Rate</small>
+              </div>
+              <div className="tax-card">
+                <h3>Transaction Fees</h3>
+                <div className="amount">${walletData.taxSummary?.totalFees.toFixed(2)}</div>
+                <small>Deductible</small>
+              </div>
+              <div className="tax-card highlight">
+                <h3>Tax Liability</h3>
+                <div className="amount">${walletData.taxSummary?.taxLiability.toFixed(2)}</div>
+                <small>Estimated Total Tax</small>
               </div>
             </div>
 
