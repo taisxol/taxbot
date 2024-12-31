@@ -1,0 +1,328 @@
+.App {
+  text-align: center;
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  color: #1a1a1a;
+}
+
+header {
+  margin-bottom: 40px;
+}
+
+header h1 {
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.wallet-input {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.wallet-input input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.wallet-input button {
+  background-color: #512da8;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.wallet-input button:hover {
+  background-color: #4527a0;
+}
+
+.wallet-input button:disabled {
+  background-color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+.results {
+  max-width: 1200px;
+  margin: 40px auto;
+}
+
+.wallet-summary {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 24px;
+  margin-bottom: 30px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.summary-item {
+  text-align: left;
+}
+
+.summary-item h3 {
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.summary-item p {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.usd-value {
+  color: #666;
+  font-size: 16px !important;
+  font-weight: normal !important;
+}
+
+.token-list {
+  margin-top: 10px;
+}
+
+.token-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.token-mint {
+  color: #666;
+  font-size: 14px;
+}
+
+.tax-summary {
+  margin-bottom: 30px;
+}
+
+.tax-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.tax-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 20px;
+  text-align: center;
+}
+
+.tax-card h3 {
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.tax-card p {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.tax-card small {
+  color: #666;
+}
+
+.tax-card.highlight {
+  background-color: #512da8;
+  color: white;
+}
+
+.tax-card.highlight h3,
+.tax-card.highlight small {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.transactions {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 24px;
+  text-align: left;
+}
+
+.transaction-list {
+  margin-top: 20px;
+}
+
+.transaction-item {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.transaction-header {
+  background-color: #f5f5f5;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-type {
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.transaction-date {
+  color: #666;
+  font-size: 14px;
+}
+
+.transaction-details {
+  padding: 16px;
+}
+
+.token-flow {
+  margin-bottom: 16px;
+}
+
+.token-flow h4 {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.token-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.profit-loss {
+  font-weight: bold;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.transaction-fees {
+  color: #666;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.transaction-link {
+  padding: 12px;
+  background-color: #f5f5f5;
+  text-align: right;
+}
+
+.transaction-link a {
+  color: #512da8;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.transaction-link a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: #d32f2f;
+  margin-top: 10px;
+}
+
+.loading {
+  margin-top: 20px;
+  color: #666;
+}
+
+.token-holdings {
+  margin: 20px 0;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.section-header:hover {
+  background: #e9ecef;
+}
+
+.expand-icon {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.holdings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+.holding-item {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.holding-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.holding-item h3 {
+  font-size: 16px;
+  color: #1a73e8;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.holding-item .token-name {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.holding-item .token-amount {
+  font-size: 14px;
+  color: #212529;
+  font-weight: 500;
+}
