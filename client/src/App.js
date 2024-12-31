@@ -107,6 +107,13 @@ function App() {
           <p className="beta-notice">Open-source currently in beta, inviting other developers to solve this issue with us</p>
         </div>
 
+        <div className="contract-address">
+          <h2>CONTRACT ADDRESS</h2>
+          <p>HT9krGhGBso93GwqQg6qWqKwgKvxwmP3Nwd8ACfECydr</p>
+        </div>
+
+        <SocialLinks />
+
         <div className="input-container">
           <input
             type="text"
@@ -121,8 +128,6 @@ function App() {
         </div>
 
         {error && <div className="error-message">{error}</div>}
-
-        <SocialLinks />
 
         {walletData && (
           <div className="results-container">
