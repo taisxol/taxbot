@@ -63,30 +63,104 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
         
         console.log(`Found ${signatures.length} transactions`);
         
+        let totalIncome = 0;
+        let capitalGains = 0;
+        let totalFees = 0;
+        
         const transactions = await Promise.all(
             signatures.map(async (sig) => {
                 try {
-                    const tx = await connection.getTransaction(sig.signature);
+                    const tx = await connection.getTransaction(sig.signature, {
+                        maxSupportedTransactionVersion: 0
+                    });
+                    
+                    if (!tx) return null;
+
+                    // Calculate fees
+                    const fee = tx.meta?.fee || 0;
+                    totalFees += fee / 1e9; // Convert lamports to SOL
+                    
+                    // Determine transaction type and calculate values
+                    let type = 'TRANSFER';
+                    let inTokens = [];
+                    let outTokens = [];
+                    
+                    if (tx.meta?.preTokenBalances && tx.meta?.postTokenBalances) {
+                        const preBalances = tx.meta.preTokenBalances;
+                        const postBalances = tx.meta.postTokenBalances;
+                        
+                        // Calculate token transfers
+                        for (let i = 0; i < postBalances.length; i++) {
+                            const post = postBalances[i];
+                            const pre = preBalances.find(b => b.accountIndex === post.accountIndex);
+                            
+                            if (pre && post) {
+                                const diff = (post.uiTokenAmount.uiAmount || 0) - (pre.uiTokenAmount.uiAmount || 0);
+                                if (diff > 0) {
+                                    inTokens.push({
+                                        mint: post.mint,
+                                        amount: diff,
+                                        usdValue: diff * 1 // TODO: Get actual token price
+                                    });
+                                    totalIncome += diff * 1;
+                                } else if (diff < 0) {
+                                    outTokens.push({
+                                        mint: post.mint,
+                                        amount: Math.abs(diff),
+                                        usdValue: Math.abs(diff) * 1
+                                    });
+                                }
+                            }
+                        }
+                        
+                        if (inTokens.length > 0 && outTokens.length > 0) {
+                            type = 'SWAP';
+                            // Simple capital gains calculation
+                            const gainLoss = inTokens.reduce((sum, t) => sum + t.usdValue, 0) - 
+                                           outTokens.reduce((sum, t) => sum + t.usdValue, 0);
+                            capitalGains += gainLoss;
+                        }
+                    }
+                    
                     return {
                         signature: sig.signature,
                         timestamp: sig.blockTime,
-                        status: tx ? 'confirmed' : 'failed'
+                        type,
+                        inTokens,
+                        outTokens,
+                        fee,
+                        status: 'confirmed'
                     };
                 } catch (err) {
                     console.error('Error fetching transaction:', sig.signature, err);
-                    return {
-                        signature: sig.signature,
-                        timestamp: sig.blockTime,
-                        status: 'error',
-                        error: err.message
-                    };
+                    return null;
                 }
             })
         );
 
+        // Filter out null transactions
+        const validTransactions = transactions.filter(tx => tx !== null);
+        
+        // Get SOL balance
+        const balance = await connection.getBalance(walletAddress);
+        const balanceInSol = balance / 1e9;
+        
+        // Calculate tax liability
+        const incomeTax = totalIncome * 0.37; // 37% tax rate
+        const capitalGainsTax = capitalGains * 0.20; // 20% tax rate
+        const taxLiability = incomeTax + capitalGainsTax;
+
         res.json({
             walletAddress: req.params.walletAddress,
-            transactions: transactions
+            balance: balanceInSol,
+            balanceUSD: balanceInSol * 1, // TODO: Get actual SOL price
+            transactions: validTransactions,
+            taxSummary: {
+                totalIncome,
+                capitalGains,
+                totalFees,
+                taxLiability
+            }
         });
         
     } catch (error) {
