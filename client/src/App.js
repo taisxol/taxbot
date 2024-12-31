@@ -19,6 +19,10 @@ function App() {
   const [selectedState, setSelectedState] = useState('California');
   const [isTokenListCollapsed, setIsTokenListCollapsed] = useState(true);
 
+  const API_URL = process.env.NODE_ENV === 'production'
+    ? 'https://taxbot-server.onrender.com'
+    : 'http://localhost:5000';
+
   const states = Object.keys(stateTaxRates);
 
   const handleSubmit = async (e) => {
@@ -27,7 +31,7 @@ function App() {
     
     try {
       console.log('Fetching data for wallet:', walletAddress);
-      const response = await fetch(`http://localhost:5000/api/transactions/${walletAddress}`);
+      const response = await fetch(`${API_URL}/api/transactions/${walletAddress}`);
       const data = await response.json();
       
       if (response.ok) {

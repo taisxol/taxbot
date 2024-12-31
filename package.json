@@ -1,16 +1,13 @@
 {
-  "name": "cryptotax",
+  "name": "taxbot",
   "version": "1.0.0",
-  "description": "Ethereum wallet tax analysis and reporting tool",
+  "description": "Solana Tax Calculator",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
-    "client": "cd client && npm start",
-    "dev:full": "concurrently \"npm run dev\" \"npm run client\"",
     "build": "cd client && npm install && npm run build",
-    "install-client": "cd client && npm install",
-    "heroku-postbuild": "npm run install-client && npm run build"
+    "dev:full": "concurrently \"npm run dev\" \"cd client && PORT=3002 npm start\""
   },
   "dependencies": {
     "@jup-ag/api": "^6.0.32",
