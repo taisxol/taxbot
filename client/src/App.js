@@ -19,26 +19,35 @@ function App() {
   const [selectedState, setSelectedState] = useState('California');
   const [isTokenListCollapsed, setIsTokenListCollapsed] = useState(true);
 
-  const API_URL = process.env.NODE_ENV === 'production'
-    ? window.location.origin  // This will use the same domain as the client
-    : 'http://localhost:5000';
-
-  const states = Object.keys(stateTaxRates);
+  // Get the base URL for API calls
+  const getApiUrl = () => {
+    if (process.env.NODE_ENV === 'production') {
+      // In production, use the same origin
+      const origin = window.location.origin;
+      console.log('Production API URL:', origin);
+      return origin;
+    } else {
+      // In development, use localhost
+      return 'http://localhost:5000';
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setProgress('Fetching wallet data...');
+    setProgress('Connecting to server...');
     
     try {
+      // First check if server is healthy
+      const healthCheck = await fetch(`${getApiUrl()}/api/health`);
+      if (!healthCheck.ok) {
+        throw new Error('Server is not responding');
+      }
+
+      setProgress('Fetching wallet data...');
       console.log('Fetching data for wallet:', walletAddress);
-      const response = await fetch(`${API_URL}/api/transactions/${walletAddress}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
       
+      const response = await fetch(`${getApiUrl()}/api/transactions/${walletAddress}`);
       const data = await response.json();
       
       if (response.ok) {
@@ -46,12 +55,13 @@ function App() {
         setWalletData(data);
         setProgress(null);
       } else {
+        console.error('Server error:', data);
         setError(data.error || 'Failed to fetch wallet data');
         setProgress(null);
       }
     } catch (err) {
-      console.error('Error fetching wallet data:', err);
-      setError('Failed to connect to server. Please try again later.');
+      console.error('Connection error:', err);
+      setError(`Failed to connect to server: ${err.message}`);
       setProgress(null);
     }
   };
@@ -114,6 +124,8 @@ function App() {
       total: federalIncomeTax + federalCapitalGainsTax + stateIncomeTax + stateCapitalGainsTax
     };
   };
+
+  const states = Object.keys(stateTaxRates);
 
   return (
     <div className="App">
