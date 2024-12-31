@@ -114,7 +114,7 @@ function App() {
 
         <SocialLinks />
 
-        <div className="input-section">
+        <div className="wallet-form">
           <input
             type="text"
             value={walletAddress}
@@ -122,7 +122,11 @@ function App() {
             placeholder="Enter Solana wallet address"
             className="wallet-input"
           />
-          <button onClick={calculateTaxes} disabled={loading} className="calculate-button">
+          <button 
+            onClick={calculateTaxes} 
+            disabled={loading || !walletAddress} 
+            className="calculate-button"
+          >
             {loading ? 'Calculating...' : 'Calculate'}
           </button>
         </div>
@@ -139,30 +143,30 @@ function App() {
               </div>
               <div className="summary-card">
                 <h3>Token Holdings</h3>
-                <div className="amount">{walletData.tokenAccounts.length}</div>
-                <div className="usd-value">${walletData.tokenBalanceUSD}</div>
+                <div className="amount">{walletData.tokenAccounts?.length || 0}</div>
+                <div className="usd-value">${walletData.tokenBalanceUSD || '0.00'}</div>
               </div>
             </div>
 
             <div className="tax-summary">
               <div className="tax-card">
                 <h3>Income Tax</h3>
-                <div className="amount">${walletData.taxSummary?.totalIncome.toFixed(2)}</div>
+                <div className="amount">${walletData.taxSummary?.totalIncome?.toFixed(2) || '0.00'}</div>
                 <small>37% Tax Rate</small>
               </div>
               <div className="tax-card">
                 <h3>Capital Gains</h3>
-                <div className="amount">${walletData.taxSummary?.capitalGains.toFixed(2)}</div>
+                <div className="amount">${walletData.taxSummary?.capitalGains?.toFixed(2) || '0.00'}</div>
                 <small>20% Tax Rate</small>
               </div>
               <div className="tax-card">
                 <h3>Transaction Fees</h3>
-                <div className="amount">${walletData.taxSummary?.totalFees.toFixed(2)}</div>
+                <div className="amount">${walletData.taxSummary?.totalFees?.toFixed(2) || '0.00'}</div>
                 <small>Deductible</small>
               </div>
               <div className="tax-card highlight">
                 <h3>Tax Liability</h3>
-                <div className="amount">${walletData.taxSummary?.taxLiability.toFixed(2)}</div>
+                <div className="amount">${walletData.taxSummary?.taxLiability?.toFixed(2) || '0.00'}</div>
                 <small>Estimated Total Tax</small>
               </div>
             </div>
