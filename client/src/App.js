@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import './App.css';
 import SocialLinks from './components/SocialLinks';
 import logo from './assets/favicon.png';  // Import the logo
+import { stateTaxRates } from './data/stateTaxRates';
 
 function App() {
   const [walletAddress, setWalletAddress] = useState('');
   const [walletData, setWalletData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
+  const [selectedState, setSelectedState] = useState('CA');
   const [isTokenHoldingsExpanded, setIsTokenHoldingsExpanded] = useState(false);
 
   const calculateTaxes = async () => {
@@ -100,19 +102,50 @@ function App() {
     }
   };
 
+  const calculateTaxesForState = (income, gains, state) => {
+    const federalIncomeTax = income * 0.37; // 37% federal income tax
+    const federalCapitalGainsTax = gains * 0.20; // 20% federal capital gains
+
+    const stateRates = stateTaxRates[state];
+    const stateIncomeTax = income * stateRates.incomeTax;
+    const stateCapitalGainsTax = gains * stateRates.capitalGainsTax;
+
+    return {
+      federal: {
+        income: federalIncomeTax,
+        capitalGains: federalCapitalGainsTax
+      },
+      state: {
+        income: stateIncomeTax,
+        capitalGains: stateCapitalGainsTax
+      },
+      total: federalIncomeTax + federalCapitalGainsTax + stateIncomeTax + stateCapitalGainsTax
+    };
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} alt="tAIx Logo" className="header-logo" />
         <h1>Solana Tax Calculator</h1>
         <p className="powered-by">powered by $tAIx</p>
-        
-        <div className="description">
-          <p>Enter your Solana wallet address to calculate taxes</p>
-          <p className="beta-notice">Open-source currently in beta, inviting other developers to solve this issue with us</p>
-        </div>
 
-        <div className="wallet-form">
+        <div className="input-container">
+          <div className="state-selector">
+            <label htmlFor="state">Select Your State:</label>
+            <select 
+              id="state" 
+              value={selectedState} 
+              onChange={(e) => setSelectedState(e.target.value)}
+            >
+              {Object.entries(stateTaxRates).map(([code, data]) => (
+                <option key={code} value={code}>
+                  {data.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <input
             type="text"
             value={walletAddress}
@@ -127,6 +160,11 @@ function App() {
           >
             {loading ? 'Calculating...' : 'Calculate'}
           </button>
+        </div>
+
+        <div className="description">
+          <p>Enter your Solana wallet address to calculate taxes</p>
+          <p className="beta-notice">Open-source currently in beta, inviting other developers to solve this issue with us</p>
         </div>
 
         <div className="contract-address">
@@ -163,14 +201,22 @@ function App() {
 
             <div className="tax-summary">
               <div className="tax-card">
-                <h3>Income Tax</h3>
-                <div className="amount">${walletData.taxSummary?.totalIncome?.toFixed(2) || '0.00'}</div>
+                <h3>Federal Income Tax</h3>
+                <div className="amount">${(walletData.taxSummary?.totalIncome * 0.37).toFixed(2)}</div>
                 <small>37% Tax Rate</small>
               </div>
               <div className="tax-card">
-                <h3>Capital Gains</h3>
-                <div className="amount">${walletData.taxSummary?.capitalGains?.toFixed(2) || '0.00'}</div>
+                <h3>Federal Capital Gains</h3>
+                <div className="amount">${(walletData.taxSummary?.capitalGains * 0.20).toFixed(2)}</div>
                 <small>20% Tax Rate</small>
+              </div>
+              <div className="tax-card">
+                <h3>State Tax ({stateTaxRates[selectedState].name})</h3>
+                <div className="amount">
+                  ${((walletData.taxSummary?.totalIncome + walletData.taxSummary?.capitalGains) * 
+                     stateTaxRates[selectedState].incomeTax).toFixed(2)}
+                </div>
+                <small>{(stateTaxRates[selectedState].incomeTax * 100).toFixed(2)}% Tax Rate</small>
               </div>
               <div className="tax-card">
                 <h3>Transaction Fees</h3>
@@ -178,9 +224,16 @@ function App() {
                 <small>Deductible</small>
               </div>
               <div className="tax-card highlight">
-                <h3>Tax Liability</h3>
-                <div className="amount">${walletData.taxSummary?.taxLiability?.toFixed(2) || '0.00'}</div>
-                <small>Estimated Total Tax</small>
+                <h3>Total Tax Liability</h3>
+                <div className="amount">
+                  ${(
+                    walletData.taxSummary?.totalIncome * 0.37 + 
+                    walletData.taxSummary?.capitalGains * 0.20 +
+                    (walletData.taxSummary?.totalIncome + walletData.taxSummary?.capitalGains) * 
+                    stateTaxRates[selectedState].incomeTax
+                  ).toFixed(2)}
+                </div>
+                <small>Federal + State Tax</small>
               </div>
             </div>
 
