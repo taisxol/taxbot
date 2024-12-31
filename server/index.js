@@ -4,6 +4,7 @@ const path = require('path');
 const { Connection, PublicKey, clusterApiUrl } = require('@solana/web3.js');
 const { TOKEN_PROGRAM_ID } = require('@solana/spl-token');
 const axios = require('axios');
+const { Jupiter } = require('@jup-ag/api');
 require('dotenv').config();
 
 const app = express();
@@ -28,6 +29,42 @@ try {
     console.log('Solana connection initialized');
 } catch (error) {
     console.error('Failed to initialize Solana connection:', error);
+}
+
+// Initialize Jupiter
+const jupiter = new Jupiter({ connection });
+
+// Cache token prices for 5 minutes
+const tokenPriceCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+async function getTokenPrice(mint) {
+    const now = Date.now();
+    const cached = tokenPriceCache.get(mint);
+    if (cached && now - cached.timestamp < CACHE_DURATION) {
+        return cached.price;
+    }
+
+    try {
+        // Use USDC as quote token
+        const quoteToken = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // USDC mint
+        const price = await jupiter.price({
+            inputMint: new PublicKey(mint),
+            outputMint: new PublicKey(quoteToken),
+            amount: 1_000_000, // 1 USDC = 1_000_000 (6 decimals)
+            slippageBps: 50
+        });
+
+        const tokenPrice = price ? parseFloat(price) : 0;
+        tokenPriceCache.set(mint, {
+            price: tokenPrice,
+            timestamp: now
+        });
+        return tokenPrice;
+    } catch (error) {
+        console.error(`Error fetching price for token ${mint}:`, error);
+        return 0;
+    }
 }
 
 // Serve static files from the React app in production
@@ -65,23 +102,27 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
             programId: TOKEN_PROGRAM_ID
         });
 
-        // Process token accounts
-        const processedTokenAccounts = tokenAccounts.value.map(account => {
+        // Process token accounts and fetch prices
+        const processedTokenAccounts = await Promise.all(tokenAccounts.value.map(async account => {
             const tokenData = account.account.data.parsed.info;
             const amount = tokenData.tokenAmount.uiAmount || 0;
-            // Only include tokens with non-zero balance
+            
             if (amount > 0) {
+                const price = await getTokenPrice(tokenData.mint);
+                const usdValue = amount * price;
+                
                 return {
                     mint: tokenData.mint,
                     amount: amount,
                     decimals: tokenData.tokenAmount.decimals,
-                    usdValue: amount * 1 // TODO: Get actual token price
+                    usdValue: usdValue
                 };
             }
             return null;
-        }).filter(token => token !== null);
+        }));
 
-        let totalTokenValue = processedTokenAccounts.reduce((sum, token) => sum + token.usdValue, 0);
+        const validTokenAccounts = processedTokenAccounts.filter(token => token !== null);
+        let totalTokenValue = validTokenAccounts.reduce((sum, token) => sum + token.usdValue, 0);
         
         // Get recent transactions
         const signatures = await connection.getSignaturesForAddress(walletAddress, {
@@ -127,14 +168,14 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
                                     inTokens.push({
                                         mint: post.mint,
                                         amount: diff,
-                                        usdValue: diff * 1 // TODO: Get actual token price
+                                        usdValue: diff * (await getTokenPrice(post.mint))
                                     });
-                                    totalIncome += diff * 1;
+                                    totalIncome += diff * (await getTokenPrice(post.mint));
                                 } else if (diff < 0) {
                                     outTokens.push({
                                         mint: post.mint,
                                         amount: Math.abs(diff),
-                                        usdValue: Math.abs(diff) * 1
+                                        usdValue: Math.abs(diff) * (await getTokenPrice(post.mint))
                                     });
                                 }
                             }
@@ -189,7 +230,7 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
             walletAddress: req.params.walletAddress,
             balance: balanceInSol,
             balanceUSD: balanceUSD,
-            tokenAccounts: processedTokenAccounts,
+            tokenAccounts: validTokenAccounts,
             tokenBalanceUSD: totalTokenValue,
             transactions: validTransactions,
             taxSummary: {

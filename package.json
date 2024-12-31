@@ -13,6 +13,7 @@
     "heroku-postbuild": "npm run install-client && npm run build"
   },
   "dependencies": {
+    "@jup-ag/api": "^6.0.32",
     "@quicknode/sdk": "^2.4.0",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.98.0",
