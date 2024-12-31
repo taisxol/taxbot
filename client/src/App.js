@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import SocialLinks from './components/SocialLinks';
+import logo from './assets/favicon.png';  // Import the logo
 
 function App() {
   const [walletAddress, setWalletAddress] = useState('');
@@ -102,7 +103,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src="/favicon.png" alt="tAIx Logo" className="header-logo" />
+        <img src={logo} alt="tAIx Logo" className="header-logo" />
         <h1>Solana Tax Calculator</h1>
         <p className="powered-by">powered by $tAIx</p>
         
