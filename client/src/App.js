@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
+import SocialLinks from './components/SocialLinks';
 
 function App() {
   const [walletAddress, setWalletAddress] = useState('');
@@ -97,33 +98,34 @@ function App() {
 
   return (
     <div className="App">
-      <header>
+      <header className="App-header">
         <h1>Solana Tax Calculator</h1>
-        <p>Enter your Solana wallet address to calculate taxes</p>
-      </header>
-
-      <main>
-        <div className="wallet-input">
-          <input
-            type="text"
-            placeholder="Enter Solana wallet address"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-          />
-          <button onClick={calculateTaxes} disabled={loading}>
-            {loading ? 'Calculating...' : 'Calculate Taxes'}
-          </button>
-          {error && <p className="error">Error: {error}</p>}
+        <p className="powered-by">powered by $tAIx</p>
+        
+        <div className="description">
+          <p>Enter your Solana wallet address to calculate taxes</p>
+          <p className="beta-notice">Open-source currently in beta, inviting other developers to solve this issue with us</p>
         </div>
 
-        {loading && (
-          <div className="loading">
-            <p>Loading... Please wait while we fetch your transaction data.</p>
-          </div>
-        )}
+        <div className="input-container">
+          <input
+            type="text"
+            value={walletAddress}
+            onChange={(e) => setWalletAddress(e.target.value)}
+            placeholder="Enter Solana wallet address"
+            className="wallet-input"
+          />
+          <button onClick={calculateTaxes} disabled={loading} className="calculate-button">
+            {loading ? 'Calculating...' : 'Calculate'}
+          </button>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <SocialLinks />
 
         {walletData && (
-          <div className="results">
+          <div className="results-container">
             <div className="wallet-summary">
               <h2>Wallet Summary</h2>
               <div className="summary-grid">
@@ -257,7 +259,7 @@ function App() {
             )}
           </div>
         )}
-      </main>
+      </header>
     </div>
   );
 }
