@@ -102,6 +102,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <img src="/favicon.png" alt="tAIx Logo" className="header-logo" />
         <h1>Solana Tax Calculator</h1>
         <p className="powered-by">powered by $tAIx</p>
         
