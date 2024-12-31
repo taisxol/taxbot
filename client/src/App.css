@@ -1,229 +1,279 @@
 .App {
   text-align: center;
+  background-color: #282c34;
   min-height: 100vh;
-  background-color: #1a1a1a;
-  color: #ffffff;
-}
-
-.App-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  color: #61dafb;
   padding: 20px;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 120px;
-  pointer-events: none;
-  margin-bottom: 20px;
-}
-
-h1 {
-  margin: 10px 0;
-  font-size: 2.5em;
-  color: #ffffff;
-}
-
-.powered-by {
-  color: #00ff00;
-  margin: 5px 0 20px;
-  font-size: 0.9em;
-}
-
-.input-section {
-  width: 100%;
-  max-width: 600px;
+.logo {
+  height: 80px;
   margin: 20px 0;
 }
 
-.state-selector {
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-.state-selector label {
-  display: block;
-  margin-bottom: 5px;
-  color: #ffffff;
-}
-
-.state-selector select {
+.input-section {
+  margin: 20px 0;
   width: 100%;
-  padding: 10px;
-  border-radius: 5px;
-  background-color: #333;
-  color: #ffffff;
-  border: 1px solid #444;
+  max-width: 600px;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
 .wallet-input {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.wallet-input input {
-  flex: 1;
+  width: 100%;
   padding: 12px;
+  margin: 10px 0;
   border-radius: 5px;
-  background-color: #333;
-  color: #ffffff;
-  border: 1px solid #444;
-  font-size: 1em;
+  border: none;
+  background-color: #3b4049;
+  color: white;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
-.wallet-input input.error {
-  border-color: #ff4444;
+.state-selector {
+  margin: 20px 0;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.wallet-input input::placeholder {
-  color: #888;
+.state-selector select {
+  padding: 8px;
+  background-color: #3b4049;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
 }
 
-.wallet-input button {
+.results-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.wallet-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background-color: #1e2127;
+  border-radius: 10px;
+}
+
+.summary-card {
+  background-color: #2c313c;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.tax-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.tax-card {
+  background-color: #2c313c;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.tax-card h3 {
+  color: #61dafb;
+  margin: 0 0 10px 0;
+  font-size: 1.1em;
+}
+
+.tax-card .amount {
+  font-size: 1.2em;
+  color: white;
+  margin: 10px 0;
+}
+
+.tax-card small {
+  color: #8a8d91;
+  display: block;
+  margin-top: 5px;
+}
+
+.tax-card.highlight {
+  background-color: #3d4451;
+}
+
+.contract-address {
+  margin: 30px 0;
+  padding: 20px;
+  background-color: #1e2127;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+}
+
+.contract-address h2 {
+  color: white;
+  margin: 0 0 10px 0;
+}
+
+.contract-address p {
+  color: white;
+  font-size: 1.2em;
+  margin: 0;
+  word-break: break-all;
+}
+
+.social-links {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 0 20px;
+}
+
+.social-links a {
+  color: #61dafb;
+  text-decoration: none;
+}
+
+.error-message {
+  color: #ff6b6b;
+  margin: 20px 0;
+  padding: 0 20px;
+}
+
+button {
+  background-color: #61dafb;
+  color: #282c34;
+  border: none;
   padding: 12px 24px;
   border-radius: 5px;
-  background-color: #00ff00;
-  color: #000000;
-  border: none;
   cursor: pointer;
+  font-size: 16px;
   font-weight: bold;
   transition: background-color 0.2s;
 }
 
-.wallet-input button:disabled {
-  background-color: #444;
+button:hover {
+  background-color: #4fa8d8;
+}
+
+button:disabled {
+  background-color: #4a4a4a;
   cursor: not-allowed;
 }
 
-.wallet-input button:hover:not(:disabled) {
-  background-color: #00dd00;
-}
-
-.beta-notice {
-  color: #888;
-  font-size: 0.9em;
-  margin: 10px 0;
-}
-
-.error-message {
-  color: #ff4444;
-  background-color: rgba(255, 68, 68, 0.1);
-  padding: 10px 20px;
-  border-radius: 5px;
-  margin: 10px 0;
-  width: 100%;
-  max-width: 600px;
-}
-
-.progress-message {
-  padding: 10px 20px;
-  border-radius: 5px;
-  margin: 10px 0;
-  width: 100%;
-  max-width: 600px;
-}
-
-.progress-message.processing {
-  color: #00ff00;
-  background-color: rgba(0, 255, 0, 0.1);
-}
-
-.progress-message.error {
-  color: #ff4444;
-  background-color: rgba(255, 68, 68, 0.1);
-}
-
-.progress-message.complete {
-  color: #00ff00;
-  background-color: rgba(0, 255, 0, 0.1);
-}
-
-.results-section {
-  width: 100%;
-  max-width: 600px;
-  margin: 20px 0;
-  text-align: left;
-}
-
-.wallet-info, .year-summary {
-  background-color: #333;
-  padding: 20px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-.wallet-info h2, .year-summary h2 {
-  margin-top: 0;
-  color: #00ff00;
-}
-
-.transactions {
-  background-color: #333;
-  padding: 20px;
-  border-radius: 5px;
-}
-
-.transactions h2 {
-  margin-top: 0;
-  color: #00ff00;
-}
-
-.transactions ul {
+.token-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 10px 0 0 0;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-.transactions li {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #444;
+.token-item {
+  padding: 10px;
+  border-bottom: 1px solid #3b4049;
+  color: white;
+  font-family: monospace;
+  word-break: break-all;
+  font-size: 0.9em;
 }
 
-.transactions li:last-child {
+.token-item:last-child {
   border-bottom: none;
 }
 
-.tx-date {
-  color: #888;
+.collapse-button {
+  background: none;
+  border: none;
+  color: #61dafb;
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 1em;
+  transition: opacity 0.2s;
 }
 
-.tx-value {
-  color: #00ff00;
+.collapse-button:hover {
+  opacity: 0.8;
 }
 
-.contract-section {
-  margin: 40px 0;
-  width: 100%;
-  max-width: 600px;
-}
-
-.contract-section h3 {
-  color: #00ff00;
-  margin-bottom: 10px;
-}
-
-.contract-address {
-  background-color: #333;
-  padding: 15px;
-  border-radius: 5px;
-  font-family: monospace;
-  word-break: break-all;
-}
-
+/* Mobile Responsive Styles */
 @media (max-width: 600px) {
-  .wallet-input {
-    flex-direction: column;
+  .App {
+    padding: 10px;
   }
-  
-  .wallet-input button {
+
+  .logo {
+    height: 60px;
+  }
+
+  .input-section {
+    padding: 0 10px;
+  }
+
+  .wallet-input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .state-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .state-selector select {
     width: 100%;
+  }
+
+  .tax-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .tax-card {
+    padding: 15px;
+  }
+
+  .tax-card h3 {
+    font-size: 1em;
+  }
+
+  .contract-address {
+    padding: 15px;
+    margin: 20px 0;
+  }
+
+  .contract-address h2 {
+    font-size: 1.2em;
+  }
+
+  .contract-address p {
+    font-size: 1em;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .token-item {
+    font-size: 0.8em;
+    padding: 8px;
   }
 }
 
@@ -325,6 +375,13 @@ h1 {
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 20px;
+}
+
+.summary-card {
+  background-color: #2c313c;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: left;
 }
 
 .summary-item {

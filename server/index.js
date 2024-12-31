@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { Connection, PublicKey, clusterApiUrl } = require('@solana/web3.js');
+const { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { TOKEN_PROGRAM_ID } = require('@solana/spl-token');
 const axios = require('axios');
 const CoinGecko = require('coingecko-api');
@@ -14,14 +14,10 @@ app.use(cors());
 
 app.use(express.json());
 
-// Initialize connection with higher commitment and better timeout
+// Initialize Solana connection
 const connection = new Connection(
-    'https://api.mainnet-beta.solana.com',
-    {
-        commitment: 'confirmed',
-        confirmTransactionInitialTimeout: 60000,
-        wsEndpoint: 'wss://api.mainnet-beta.solana.com/'
-    }
+  'https://api.mainnet-beta.solana.com',
+  'confirmed'
 );
 console.log('Solana connection initialized');
 
@@ -96,148 +92,29 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
 
         const walletAddress = new PublicKey(req.params.walletAddress);
         
+        // Get SOL balance
+        const balance = await connection.getBalance(walletAddress);
+        console.log('Raw balance:', balance);
+        const solBalance = balance / LAMPORTS_PER_SOL;
+        console.log('SOL balance:', solBalance);
+        
         // Get token accounts
         const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletAddress, {
             programId: TOKEN_PROGRAM_ID
         });
 
-        // Process token accounts and fetch prices
-        const processedTokenAccounts = await Promise.all(tokenAccounts.value.map(async account => {
-            const tokenData = account.account.data.parsed.info;
-            const amount = tokenData.tokenAmount.uiAmount || 0;
-            
-            if (amount > 0) {
-                const price = await getTokenPrice(tokenData.mint);
-                const usdValue = amount * price;
-                
-                return {
-                    mint: tokenData.mint,
-                    amount: amount,
-                    decimals: tokenData.tokenAmount.decimals,
-                    usdValue: usdValue
-                };
-            }
-            return null;
+        console.log('Token accounts found:', tokenAccounts.value.length);
+
+        // Process token accounts - only get the mint addresses
+        const tokens = tokenAccounts.value.map(account => ({
+            mint: account.account.data.parsed.info.mint
         }));
 
-        const validTokenAccounts = processedTokenAccounts.filter(token => token !== null);
-        let totalTokenValue = validTokenAccounts.reduce((sum, token) => sum + token.usdValue, 0);
-        
-        // Get recent transactions
-        const signatures = await connection.getSignaturesForAddress(walletAddress, {
-            limit: 20
-        });
-        
-        console.log(`Found ${signatures.length} transactions`);
-        
-        let totalIncome = 0;
-        let capitalGains = 0;
-        let totalFees = 0;
-        
-        const transactions = await Promise.all(
-            signatures.map(async (sig) => {
-                try {
-                    const tx = await connection.getTransaction(sig.signature, {
-                        maxSupportedTransactionVersion: 0
-                    });
-                    
-                    if (!tx) return null;
-
-                    // Calculate fees
-                    const fee = tx.meta?.fee || 0;
-                    totalFees += fee / 1e9; // Convert lamports to SOL
-                    
-                    // Determine transaction type and calculate values
-                    let type = 'TRANSFER';
-                    let inTokens = [];
-                    let outTokens = [];
-                    
-                    if (tx.meta?.preTokenBalances && tx.meta?.postTokenBalances) {
-                        const preBalances = tx.meta.preTokenBalances;
-                        const postBalances = tx.meta.postTokenBalances;
-                        
-                        // Calculate token transfers
-                        for (let i = 0; i < postBalances.length; i++) {
-                            const post = postBalances[i];
-                            const pre = preBalances.find(b => b.accountIndex === post.accountIndex);
-                            
-                            if (pre && post) {
-                                const diff = (post.uiTokenAmount.uiAmount || 0) - (pre.uiTokenAmount.uiAmount || 0);
-                                if (diff > 0) {
-                                    inTokens.push({
-                                        mint: post.mint,
-                                        amount: diff,
-                                        usdValue: diff * (await getTokenPrice(post.mint))
-                                    });
-                                    totalIncome += diff * (await getTokenPrice(post.mint));
-                                } else if (diff < 0) {
-                                    outTokens.push({
-                                        mint: post.mint,
-                                        amount: Math.abs(diff),
-                                        usdValue: Math.abs(diff) * (await getTokenPrice(post.mint))
-                                    });
-                                }
-                            }
-                        }
-                        
-                        if (inTokens.length > 0 && outTokens.length > 0) {
-                            type = 'SWAP';
-                            // Calculate profit/loss
-                            const inValue = inTokens.reduce((sum, t) => sum + (t.usdValue || 0), 0);
-                            const outValue = outTokens.reduce((sum, t) => sum + (t.usdValue || 0), 0);
-                            const profit = inValue - outValue;
-                            capitalGains += profit;
-                            return {
-                                signature: sig.signature,
-                                timestamp: sig.blockTime,
-                                type,
-                                inTokens,
-                                outTokens,
-                                fee,
-                                profit,
-                                status: 'confirmed'
-                            };
-                        }
-                    }
-                    
-                    return {
-                        signature: sig.signature,
-                        timestamp: sig.blockTime,
-                        type,
-                        inTokens,
-                        outTokens,
-                        fee,
-                        status: 'confirmed'
-                    };
-                } catch (err) {
-                    console.error('Error fetching transaction:', sig.signature, err);
-                    return null;
-                }
-            })
-        );
-
-        // Filter out null transactions
-        const validTransactions = transactions.filter(tx => tx !== null);
-        
-        // Get SOL balance
-        const balance = await connection.getBalance(walletAddress);
-        const balanceInSol = balance / 1e9;
-        const solPrice = await getTokenPrice('So11111111111111111111111111111111111111112'); // Native SOL mint
-        const balanceUSD = balanceInSol * solPrice;
+        console.log('Processed tokens:', tokens);
 
         res.json({
-            walletAddress: req.params.walletAddress,
-            balance: balanceInSol,
-            balanceUSD: balanceUSD,
-            tokenAccounts: validTokenAccounts,
-            tokenBalanceUSD: totalTokenValue,
-            transactions: validTransactions,
-            taxSummary: {
-                totalIncome,
-                capitalGains,
-                totalFees,
-                taxLiability: totalIncome * 0.37 + capitalGains * 0.20
-            }
+            solBalance,
+            tokens
         });
         
     } catch (error) {
