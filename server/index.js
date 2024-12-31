@@ -447,11 +447,7 @@ app.get('/api/transactions/:address', async (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        rpcEndpoint: connection.rpcEndpoint
-    });
+  res.status(200).json({ status: 'ok' });
 });
 
 // Serve React app for any unknown routes in production

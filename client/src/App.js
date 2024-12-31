@@ -21,14 +21,19 @@ function App() {
     try {
       console.log('Fetching data for wallet:', walletAddress);
       
+      // Get the base URL based on environment
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? '' // Empty string will make it use relative URL in production
+        : 'http://localhost:3001';
+      
       // First check if server is healthy
-      const healthCheck = await fetch('http://localhost:3001/health');
+      const healthCheck = await fetch(`${baseUrl}/health`);
       if (!healthCheck.ok) {
         throw new Error('Server is not responding');
       }
       
       // Get transactions and tax data
-      const response = await fetch(`http://localhost:3001/api/transactions/${walletAddress}`);
+      const response = await fetch(`${baseUrl}/api/transactions/${walletAddress}`);
       const data = await response.json();
       
       if (data.error) {
