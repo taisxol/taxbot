@@ -1,20 +1,12 @@
 services:
   - type: web
-    name: taxbot-server
+    name: taxbot
     env: node
-    buildCommand: npm install
-    startCommand: node server/index.js
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5000
-
-  - type: web
-    name: taxbot-client
-    env: static
-    buildCommand: cd client && npm install && npm run build
+        value: "5000"
     staticPublishPath: ./client/build
-    envVars:
-      - key: NODE_ENV
-        value: production

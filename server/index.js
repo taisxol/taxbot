@@ -9,15 +9,13 @@ const CoinGecko = require('coingecko-api');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Enable CORS for development
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://taxbot-client.onrender.com' 
-    : 'http://localhost:3002',
-  optionsSuccessStatus: 200
-};
+// Enable CORS for all origins in production
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type']
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
 
 // Initialize Solana connection
@@ -133,11 +131,13 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
 });
 
 // Handle React routing in production
-if (process.env.NODE_ENV === 'production') {
-    app.get('*', (req, res) => {
+app.get('*', (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.join(__dirname, '../client/build/index.html'));
-    });
-}
+    } else {
+        res.status(404).send('Not Found');
+    }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -148,6 +148,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server is running on port ${port}`);
 });

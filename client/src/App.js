@@ -20,7 +20,7 @@ function App() {
   const [isTokenListCollapsed, setIsTokenListCollapsed] = useState(true);
 
   const API_URL = process.env.NODE_ENV === 'production'
-    ? 'https://taxbot-server.onrender.com'
+    ? window.location.origin  // This will use the same domain as the client
     : 'http://localhost:5000';
 
   const states = Object.keys(stateTaxRates);
@@ -28,21 +28,31 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setProgress('Fetching wallet data...');
     
     try {
       console.log('Fetching data for wallet:', walletAddress);
-      const response = await fetch(`${API_URL}/api/transactions/${walletAddress}`);
+      const response = await fetch(`${API_URL}/api/transactions/${walletAddress}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
       const data = await response.json();
       
       if (response.ok) {
         console.log('Received wallet data:', data);
         setWalletData(data);
+        setProgress(null);
       } else {
         setError(data.error || 'Failed to fetch wallet data');
+        setProgress(null);
       }
     } catch (err) {
       console.error('Error fetching wallet data:', err);
-      setError('Failed to connect to server');
+      setError('Failed to connect to server. Please try again later.');
+      setProgress(null);
     }
   };
 
