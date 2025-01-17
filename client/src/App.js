@@ -237,7 +237,7 @@ function App() {
 
         <div className="contract-address">
           <h2>CONTRACT ADDRESS</h2>
-          <p>4TgvqjX5J4qDbpkaYGxLUdCVuLyvNiVV5EQDL66PBPc3</p>
+          <p></p>
         </div>
 
         <SocialLinks />
