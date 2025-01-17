@@ -22,7 +22,7 @@ const SocialLinks = () => {
     },
     {
       name: 'DexScreener',
-      url: 'https://dexscreener.com/solana/4TgvqjX5J4qDbpkaYGxLUdCVuLyvNiVV5EQDL66PBPc3',
+      url: 'https://dexscreener.com/solana/',
       icon: (
         <img 
           src="/dexscreener-logo.svg" 
