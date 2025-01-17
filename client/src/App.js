@@ -132,7 +132,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <h1>Solana Tax Calculator</h1>
-        <p className="powered-by">powered by $tAlx</p>
+        <p className="powered-by">powered by $tAx</p>
 
         <div className="input-section">
           <div className="state-selector">
